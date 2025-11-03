@@ -1,0 +1,71 @@
+from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QTableWidget, 
+                             QTableWidgetItem, QPushButton)
+from PyQt6.QtCore import Qt
+import os
+
+class PartsList(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.init_ui()
+        
+    def init_ui(self):
+        layout = QVBoxLayout(self)
+        
+        # Create table widget
+        self.table = QTableWidget()
+        self.table.setColumnCount(8)
+        self.table.setHorizontalHeaderLabels([
+            "Part Number", "Type", "Value", "Description",
+            "Manufacturer P/N", "Stock", "Price", "Datasheet"
+        ])
+        
+        # Set column widths
+        self.table.setColumnWidth(0, 120)  # Part Number
+        self.table.setColumnWidth(1, 100)  # Type
+        self.table.setColumnWidth(2, 100)  # Value
+        self.table.setColumnWidth(3, 200)  # Description
+        self.table.setColumnWidth(4, 150)  # Manufacturer P/N
+        self.table.setColumnWidth(5, 80)   # Stock
+        self.table.setColumnWidth(6, 100)  # Price
+        self.table.setColumnWidth(7, 100)  # Datasheet
+        
+        layout.addWidget(self.table)
+        
+    def update_parts_list(self, parts):
+        self.table.setRowCount(0)  # Clear existing items
+        
+        for part in parts:
+            row = self.table.rowCount()
+            self.table.insertRow(row)
+            
+            # Unpack part data (matches updated database columns)
+            (id, company_pn, type_, value, description, manufacturer, 
+             mpn, datasheet_path, stock, min_stock, created, updated) = part
+            
+            # Add component data to table
+            self.table.setItem(row, 0, QTableWidgetItem(company_pn))
+            self.table.setItem(row, 1, QTableWidgetItem(type_))
+            self.table.setItem(row, 2, QTableWidgetItem(value or ""))
+            self.table.setItem(row, 3, QTableWidgetItem(description or ""))
+            self.table.setItem(row, 4, QTableWidgetItem(mpn or ""))
+            self.table.setItem(row, 5, QTableWidgetItem(str(stock)))
+            self.table.setItem(row, 6, QTableWidgetItem("N/A"))  # Price will be updated with supplier data
+            
+            # Datasheet button
+            if datasheet_path and os.path.exists(datasheet_path):
+                datasheet_btn = QPushButton("View")
+                datasheet_btn.clicked.connect(lambda checked, path=datasheet_path: self.open_datasheet(path))
+                self.table.setCellWidget(row, 7, datasheet_btn)
+            else:
+                self.table.setItem(row, 7, QTableWidgetItem("No datasheet"))
+    
+    def open_datasheet(self, path):
+        import subprocess
+        import platform
+        
+        if platform.system() == 'Windows':
+            os.startfile(path)
+        elif platform.system() == 'Darwin':  # macOS
+            subprocess.run(['open', path])
+        else:  # Linux
+            subprocess.run(['xdg-open', path])

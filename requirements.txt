@@ -1,0 +1,7 @@
+PyQt6
+requests
+beautifulsoup4
+python-dotenv
+pandas
+openpyxl  # for Excel file support
+PyMuPDF  # for PDF preview
