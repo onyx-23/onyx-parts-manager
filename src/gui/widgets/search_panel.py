@@ -3,18 +3,20 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QComboBox,
 from PyQt6.QtCore import pyqtSignal
 
 class SearchPanel(QWidget):
-    search_triggered = pyqtSignal(str, str)  # type, value
+    search_triggered = pyqtSignal(str, str, str)  # part_number, type, value
 
     def __init__(self):
         super().__init__()
         self.init_ui()
         
     def init_ui(self):
-        # Set dark theme for the panel
+        # Set dark theme for the panel with a subtle border at the bottom
         self.setStyleSheet("""
-            QWidget {
+            SearchPanel {
                 background-color: #2D2D2D;
                 color: #E0E0E0;
+                border-bottom: 3px solid #4A4A4A;
+                padding-bottom: 10px;
             }
             QLabel {
                 color: #E0E0E0;
@@ -56,7 +58,7 @@ class SearchPanel(QWidget):
         """)
         
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(10, 10, 10, 10)  # Add some padding around the edges
+        layout.setContentsMargins(10, 10, 10, 15)  # Add more bottom margin
         
         # Search filters
         filters_layout = QHBoxLayout()
@@ -70,6 +72,7 @@ class SearchPanel(QWidget):
         self.pn_edit = QLineEdit()
         self.pn_edit.setPlaceholderText("Enter Onyx part number")
         self.pn_edit.setMinimumWidth(200)  # Set minimum width
+        self.pn_edit.returnPressed.connect(self.on_search)  # Trigger search on Enter
         pn_layout.addWidget(self.pn_edit)
         filters_layout.addLayout(pn_layout)
         
@@ -92,6 +95,7 @@ class SearchPanel(QWidget):
         self.value_edit = QLineEdit()
         self.value_edit.setPlaceholderText("e.g., 100nF, 10k")
         self.value_edit.setMinimumWidth(150)  # Set minimum width
+        self.value_edit.returnPressed.connect(self.on_search)  # Trigger search on Enter
         value_layout.addWidget(self.value_edit)
         filters_layout.addLayout(value_layout)
         
@@ -110,6 +114,7 @@ class SearchPanel(QWidget):
         layout.addLayout(filters_layout)
     
     def on_search(self):
+        part_number = self.pn_edit.text()
         component_type = self.type_combo.currentText()
         value = self.value_edit.text()
-        self.search_triggered.emit(component_type, value)
+        self.search_triggered.emit(part_number, component_type, value)

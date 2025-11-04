@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 from pathlib import Path
 from typing import Optional, Union
@@ -13,10 +14,17 @@ class DatasheetManager:
             base_path: Optional base path for datasheets. If None, will use data/datasheets in the project directory
         """
         if base_path is None:
-            # Find the project root (where the data directory is)
-            current_file = Path(__file__)
-            project_root = current_file.parent.parent.parent
-            self.base_path = project_root / "data" / "datasheets"
+            # Get the application's data directory
+            if getattr(sys, 'frozen', False):
+                # Running as compiled executable - use AppData for writable storage
+                appdata = Path(os.environ.get('LOCALAPPDATA', os.path.expanduser('~')))
+                application_path = appdata / 'OnyxIndustries' / 'PartsManager'
+            else:
+                # Running as script
+                current_file = Path(__file__)
+                application_path = current_file.parent.parent.parent
+            
+            self.base_path = application_path / "data" / "datasheets"
         else:
             self.base_path = Path(base_path)
             

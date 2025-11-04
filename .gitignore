@@ -41,7 +41,13 @@ data/datasheets/*
 # PyInstaller
 dist/
 build/
-*.spec
+*.spec.bak
+
+# NSIS Installer
+OnxPartsManager-Setup-*.exe
+
+# Backup data
+data_backup/
 
 # Installer logs
 pip-log.txt

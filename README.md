@@ -2,6 +2,73 @@
 
 A professional desktop application for managing electronic components inventory with real-time supplier integration.
 
+## Current Development Status
+
+### Latest Release (November 3, 2025) - v1.0.0
+- ✅ Complete PyInstaller distribution with all dependencies
+- ✅ NSIS installer with auto-update capability
+- ✅ User-specific database storage (AppData)
+- ✅ Database path resolution for frozen executables
+- ✅ Full CRUD operations (Create, Read, Update, Delete)
+- ✅ Search functionality with Enter key support
+- ✅ Delete confirmation dialogs
+- ✅ Improved UI styling and column layout
+- ✅ Fixed column widths with horizontal scrolling
+- ✅ Datasheet management with View/Change/Add PDF buttons
+
+### Features Implemented
+- ✅ Component search by Part Number, Type, and Value
+- ✅ Add new components with datasheet upload
+- ✅ Delete components with confirmation
+- ✅ View and manage component datasheets
+- ✅ Fixed-width columns with horizontal scroll
+- ✅ Multi-user support (each Windows user gets their own database)
+- ✅ Professional dark theme UI
+
+### Installation Behavior
+When installed, the application:
+- Installs program files to `C:\Program Files\OnyxIndustries\PartsManager\`
+- Creates user-specific data at `%LOCALAPPDATA%\OnyxIndustries\PartsManager\`
+- Each Windows user gets their own database and datasheet storage
+- No hardcoded paths - fully portable across different machines
+
+### Next Steps
+- Set up GitHub Actions for automated builds
+- Add automated tests
+- Implement supplier API integration (Digikey, Mouser, LCSC)
+- Add CSV/Excel import functionality
+- Implement price tracking features
+
+### Quick Start for Development
+
+1. Ensure Python 3.11 or later is installed
+2. Create and activate virtual environment:
+   ```
+   python -m venv .venv
+   .venv\Scripts\activate  # Windows
+   source .venv/bin/activate  # Linux/Mac
+   ```
+3. Install dependencies:
+   ```
+   pip install -r requirements.txt
+   ```
+
+### Building the Installer
+
+1. Install requirements:
+   ```
+   pip install pyinstaller
+   ```
+2. Install NSIS (Nullsoft Scriptable Install System)
+3. Build the distribution:
+   ```
+   python -m PyInstaller "Onyx Parts Manager.spec"
+   ```
+4. Create the installer:
+   ```
+   "C:\Program Files (x86)\NSIS\makensis.exe" installer_with_updates.nsi
+   ```
+
 ## Features
 
 - Search and filter electronic components by type, value, and other parameters

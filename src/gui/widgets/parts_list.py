@@ -148,7 +148,40 @@ class PartsList(QWidget):
         button_layout = QHBoxLayout()
         self.add_button = QPushButton("Add Component")
         self.add_button.clicked.connect(self.show_add_component_dialog)
+        self.add_button.setStyleSheet("""
+            QPushButton {
+                background-color: #7B5E9D;
+                color: white;
+                font-weight: bold;
+                padding: 6px 12px;
+            }
+            QPushButton:hover {
+                background-color: #8F75B0;
+            }
+            QPushButton:pressed {
+                background-color: #674D82;
+            }
+        """)
         button_layout.addWidget(self.add_button)
+        
+        self.delete_button = QPushButton("Delete Selected")
+        self.delete_button.clicked.connect(self.delete_selected_component)
+        self.delete_button.setStyleSheet("""
+            QPushButton {
+                background-color: #A64452;
+                color: white;
+                font-weight: bold;
+                padding: 6px 12px;
+            }
+            QPushButton:hover {
+                background-color: #B85565;
+            }
+            QPushButton:pressed {
+                background-color: #8B3A45;
+            }
+        """)
+        button_layout.addWidget(self.delete_button)
+        
         button_layout.addStretch()
         self.layout.addLayout(button_layout)
         
@@ -256,12 +289,12 @@ class PartsList(QWidget):
                 alternate-background-color: #353535;
             }
             QHeaderView::section {
-                background-color: #4A2C6B;
+                background-color: #7B5E9D;
                 color: white;
                 padding: 6px;
                 font-weight: bold;
                 border: none;
-                border-right: 1px solid #563D7C;
+                border-right: 1px solid #8F75B0;
             }
             QTableWidget::item {
                 padding: 4px;
@@ -287,33 +320,33 @@ class PartsList(QWidget):
         # Enable alternating row colors
         self.table.setAlternatingRowColors(True)
         
-        # Enable sorting and stretching
+        # Enable sorting but disable last section stretch for horizontal scrolling
         self.table.setSortingEnabled(True)
-        header.setStretchLastSection(True)  # Make last column fill remaining space
+        header.setStretchLastSection(False)  # Don't stretch to enable horizontal scroll
+        
+        # Enable horizontal scrollbar
+        self.table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         
         # Set column widths and fixed sizes where appropriate
         column_widths = [
-            (0, 120),  # Part Number
-            (1, 100),  # Type
+            (0, 100),  # Part Number (reduced from 120)
+            (1, 80),   # Type (reduced from 100)
             (2, 80),   # Value
-            (3, 60),   # Unit
-            (4, 100),  # Package
+            (3, 50),   # Unit (reduced from 60)
+            (4, 80),   # Package (reduced from 100)
             (5, 100),  # Footprint
             (6, 80),   # Voltage
-            (7, 200),  # Description
-            (8, 150),  # Manufacturer P/N
+            (7, 400),  # Description (doubled from 200)
+            (8, 225),  # Manufacturer P/N (1.5x from 150)
             (9, 80),   # Stock
             (10, 80),  # Price
-            (11, 100)  # Datasheet
+            (11, 180)  # Datasheet (increased for buttons with more spacing)
         ]
         
-        # Apply column widths and fix sizes
+        # Apply column widths and fix all column sizes (no stretching)
         for col, width in column_widths:
             self.table.setColumnWidth(col, width)
-            if col != 7:  # Allow only Description column to stretch
-                header.setSectionResizeMode(col, QHeaderView.ResizeMode.Fixed)
-            else:
-                header.setSectionResizeMode(col, QHeaderView.ResizeMode.Stretch)
+            header.setSectionResizeMode(col, QHeaderView.ResizeMode.Fixed)
                 
         # Set up unit delegate for the Unit column
         unit_delegate = UnitDelegate(self.table)
@@ -356,13 +389,13 @@ class PartsList(QWidget):
             
             # Create items with appropriate alignment
             items = [
-                (QTableWidgetItem(company_pn), Qt.AlignmentFlag.AlignLeft),
+                (QTableWidgetItem(company_pn), Qt.AlignmentFlag.AlignCenter),  # Part Number - centered
                 (QTableWidgetItem(type_), Qt.AlignmentFlag.AlignLeft),
                 (value_item, Qt.AlignmentFlag.AlignRight),  # Numeric value
-                (QTableWidgetItem(unit), Qt.AlignmentFlag.AlignLeft),  # Unit
-                (QTableWidgetItem(package_type or ""), Qt.AlignmentFlag.AlignLeft),
+                (QTableWidgetItem(unit), Qt.AlignmentFlag.AlignCenter),  # Unit - centered
+                (QTableWidgetItem(package_type or ""), Qt.AlignmentFlag.AlignRight),  # Package - right aligned
                 (QTableWidgetItem(footprint_size or ""), Qt.AlignmentFlag.AlignLeft),
-                (QTableWidgetItem(voltage_rating or ""), Qt.AlignmentFlag.AlignRight),
+                (QTableWidgetItem(voltage_rating or ""), Qt.AlignmentFlag.AlignCenter),  # Voltage - centered
                 (QTableWidgetItem(description or ""), Qt.AlignmentFlag.AlignLeft),
                 (QTableWidgetItem(mpn or ""), Qt.AlignmentFlag.AlignLeft),
                 (stock_item, Qt.AlignmentFlag.AlignRight),  # Numeric stock
@@ -377,26 +410,23 @@ class PartsList(QWidget):
             # Create datasheet controls in the last column
             container = QWidget()
             layout = QHBoxLayout(container)
-            layout.setContentsMargins(0, 2, 0, 0)  # Add small top margin
-            layout.setSpacing(1)  # Reduce spacing between buttons
-            layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+            layout.setContentsMargins(4, 1, 4, 1)  # Add margins on all sides
+            layout.setSpacing(8)  # Increase spacing between buttons
+            layout.setAlignment(Qt.AlignmentFlag.AlignTop)  # Align to top instead of center
             
             button_style = """
                 QPushButton {
                     background-color: #6A4C93;
                     color: white;
                     border: none;
-                    border-top-left-radius: 2px;
-                    border-top-right-radius: 2px;
-                    border-bottom-left-radius: 0px;
-                    border-bottom-right-radius: 0px;
-                    padding: 0px 8px;
+                    border-radius: 2px;
+                    padding-top: 0px;
+                    padding-bottom: 8px;
+                    padding-left: 10px;
+                    padding-right: 10px;
                     min-width: 60px;
-                    height: 20px;
-                    line-height: 20px;
-                    margin: 0px;
-                    text-align: center;
-                    qproperty-alignment: AlignCenter;
+                    font-size: 11px;
+                    margin-top: 1px;
                 }
                 QPushButton:hover {
                     background-color: #845EC2;
@@ -617,7 +647,7 @@ class PartsList(QWidget):
                 # Update database
                 with self.db.get_connection() as conn:
                     conn.execute(
-                        "UPDATE components SET datasheet_path = ?, updated = CURRENT_TIMESTAMP WHERE company_part_number = ?",
+                        "UPDATE components SET datasheet_path = ?, updated_at = CURRENT_TIMESTAMP WHERE company_part_number = ?",
                         (str(stored_path), company_pn)
                     )
                     conn.commit()
@@ -654,9 +684,9 @@ class PartsList(QWidget):
                     cursor = conn.cursor()
                     cursor.execute("""
                         INSERT INTO components (
-                            company_part_number, type_name, value, package_type,
+                            company_part_number, type, value, package_type,
                             footprint_size, voltage_rating, description,
-                            manufacturer, mpn, datasheet_path, stock, minimum_stock
+                            manufacturer, manufacturer_part_number, datasheet_path, stock, minimum_stock
                         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """, (
                         data["company_part_number"],
@@ -695,4 +725,60 @@ class PartsList(QWidget):
                     self,
                     "Error",
                     f"Failed to add component: {str(e)}"
+                )
+    
+    def delete_selected_component(self):
+        """Delete the currently selected component after confirmation."""
+        # Get selected row
+        selected_items = self.table.selectedItems()
+        if not selected_items:
+            QMessageBox.warning(
+                self,
+                "No Selection",
+                "Please select a component to delete."
+            )
+            return
+        
+        # Get the row of the first selected item
+        row = selected_items[0].row()
+        
+        # Get the company part number from the first column
+        company_part_number = self.table.item(row, 0).text()
+        
+        # Show confirmation dialog
+        reply = QMessageBox.question(
+            self,
+            "Confirm Deletion",
+            f"Are you sure you want to delete component '{company_part_number}'?\n\nThis action cannot be undone.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No  # Default to No for safety
+        )
+        
+        if reply == QMessageBox.StandardButton.Yes:
+            try:
+                with self.db.get_connection() as conn:
+                    cursor = conn.cursor()
+                    
+                    # Delete the component
+                    cursor.execute(
+                        "DELETE FROM components WHERE company_part_number = ?",
+                        (company_part_number,)
+                    )
+                    conn.commit()
+                
+                # Emit signal to update the display
+                self.database_updated.emit()
+                
+                # Show success message
+                QMessageBox.information(
+                    self,
+                    "Success",
+                    f"Component '{company_part_number}' deleted successfully!"
+                )
+                
+            except Exception as e:
+                QMessageBox.critical(
+                    self,
+                    "Error",
+                    f"Failed to delete component: {str(e)}"
                 )

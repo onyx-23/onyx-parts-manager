@@ -49,19 +49,19 @@ class MainWindow(QMainWindow):
         
         # Connect signals
         self.search_panel.search_triggered.connect(self.perform_search)
-        self.parts_list.database_updated.connect(lambda: self.perform_search("All", ""))
+        self.parts_list.database_updated.connect(lambda: self.perform_search("", "All", ""))
         
         # Initial search to populate the list
-        self.perform_search("All", "")
+        self.perform_search("", "All", "")
     
-    def perform_search(self, type_filter, value_filter):
+    def perform_search(self, pn_filter, type_filter, value_filter):
         """Search for components and update the parts list."""
-        # Clear filters if searching for "All" with no value
-        if type_filter == "All" and not value_filter.strip():
+        # Clear filters if searching for "All" with no value or part number
+        if type_filter == "All" and not value_filter.strip() and not pn_filter.strip():
             # Show all components
             results = self.db.search_components()
         else:
             # Search with filters
-            results = self.db.search_components(type_filter, value_filter)
+            results = self.db.search_components(pn_filter, type_filter, value_filter)
             
         self.parts_list.update_parts_list(results)

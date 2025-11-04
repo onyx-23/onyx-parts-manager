@@ -47,9 +47,16 @@ Section "MainSection" SEC01
     # Main executable and dependencies
     File /r "dist\Onyx Parts Manager\*.*"
     
-    # Create data directories
-    CreateDirectory "$INSTDIR\data"
-    CreateDirectory "$INSTDIR\data\datasheets"
+    # Create AppData directories for user data
+    CreateDirectory "$LOCALAPPDATA\OnyxIndustries\PartsManager\data"
+    CreateDirectory "$LOCALAPPDATA\OnyxIndustries\PartsManager\data\datasheets"
+    
+    # Copy database file to AppData
+    SetOutPath "$LOCALAPPDATA\OnyxIndustries\PartsManager\data"
+    File "data\parts.db"
+    
+    # Create updates directory in install location
+    SetOutPath "$INSTDIR"
     CreateDirectory "$INSTDIR\updates"
     
     # Environment file template
@@ -110,9 +117,14 @@ Section Uninstall
     Delete "$DESKTOP\${PRODUCT_NAME}.lnk"
     
     RMDir "$SMPROGRAMS\${PRODUCT_NAME}"
-    RMDir /r "$INSTDIR\data"
     RMDir /r "$INSTDIR\updates"
+    RMDir /r "$INSTDIR\_internal"
     RMDir "$INSTDIR"
+    
+    # Ask user if they want to remove user data
+    MessageBox MB_YESNO "Do you want to remove all user data (database and datasheets)?" IDNO skip_data_removal
+    RMDir /r "$LOCALAPPDATA\OnyxIndustries\PartsManager"
+    skip_data_removal:
     
     # Remove registry entries
     DeleteRegKey HKLM "${PRODUCT_UNINST_KEY}"

@@ -1,10 +1,24 @@
 import sqlite3
 import os
+import sys
 from pathlib import Path
 
 class Database:
     def __init__(self):
-        self.db_path = Path(__file__).parent.parent.parent / 'data' / 'parts.db'
+        # Get the application's data directory
+        if getattr(sys, 'frozen', False):
+            # Running as compiled executable - use AppData for writable storage
+            appdata = Path(os.environ.get('LOCALAPPDATA', os.path.expanduser('~')))
+            application_path = appdata / 'OnyxIndustries' / 'PartsManager'
+        else:
+            # Running as script - use project directory
+            application_path = Path(__file__).parent.parent.parent
+        
+        self.db_path = application_path / 'data' / 'parts.db'
+        
+        # Ensure data directory exists
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        
         self.init_database()
 
     def get_connection(self):
@@ -70,7 +84,7 @@ class Database:
                  stock, minimum_stock))
             return cursor.lastrowid
 
-    def search_components(self, type_filter=None, value_filter=None):
+    def search_components(self, pn_filter=None, type_filter=None, value_filter=None):
         """Search components based on filters."""
         with sqlite3.connect(str(self.db_path)) as conn:
             cursor = conn.cursor()
@@ -82,13 +96,17 @@ class Database:
             # Only add WHERE clause if we have actual filters
             conditions = []
             
+            if pn_filter and pn_filter.strip():
+                conditions.append("company_part_number LIKE ?")
+                params.append(f"%{pn_filter}%")
+            
             if type_filter and type_filter != "All":
                 conditions.append("type = ?")
                 params.append(type_filter)
                 
             if value_filter and value_filter.strip():
-                conditions.append("(value LIKE ? OR company_part_number LIKE ?)")
-                params.extend([f"%{value_filter}%", f"%{value_filter}%"])
+                conditions.append("value LIKE ?")
+                params.append(f"%{value_filter}%")
             
             if conditions:
                 query += " WHERE " + " AND ".join(conditions)
