@@ -46,6 +46,7 @@ build/
 # NSIS Installer
 # Note: .exe files are tracked via Git LFS
 # OnxPartsManager-Setup-*.exe
+OnxPartsManager-Setup-*.zip
 
 # Backup data
 data_backup/
