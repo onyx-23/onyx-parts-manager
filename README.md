@@ -69,6 +69,24 @@ When installed, the application:
    "C:\Program Files (x86)\NSIS\makensis.exe" installer_with_updates.nsi
    ```
 
+## Installation
+
+### Download
+Download the latest installer from the [Releases](https://github.com/onyx-23/onyx-parts-manager/releases) page.
+
+**File**: `OnxPartsManager-Setup-1.0.0.exe` (57 MB)
+
+After downloading:
+1. Run `OnxPartsManager-Setup-1.0.0.exe`
+2. Follow the installation wizard
+3. The application will be installed to `C:\Program Files\OnyxIndustries\PartsManager\`
+4. Your database and datasheets will be stored in `%LOCALAPPDATA%\OnyxIndustries\PartsManager\`
+
+### System Requirements
+- Windows 10 or later (64-bit)
+- ~100 MB disk space
+- No Python installation required (all dependencies bundled)
+
 ## Features
 
 - Search and filter electronic components by type, value, and other parameters

@@ -44,7 +44,8 @@ build/
 *.spec.bak
 
 # NSIS Installer
-OnxPartsManager-Setup-*.exe
+# Note: .exe files are tracked via Git LFS
+# OnxPartsManager-Setup-*.exe
 
 # Backup data
 data_backup/
