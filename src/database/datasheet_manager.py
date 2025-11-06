@@ -4,14 +4,31 @@ import shutil
 from pathlib import Path
 from typing import Optional, Union
 import logging
+from src.security import (
+    validate_component_id,
+    validate_file_path,
+    validate_file_size,
+    validate_file_extension,
+    sanitize_string,
+    MAX_FILE_SIZE_MB
+)
+
+# Configure module logger
+logger = logging.getLogger(__name__)
+
 
 class DatasheetManager:
     def __init__(self, base_path: Optional[str] = None):
         """
-        Initialize the DatasheetManager.
+        Initialize the DatasheetManager with enhanced security.
         
         Args:
             base_path: Optional base path for datasheets. If None, will use data/datasheets in the project directory
+            
+        Security:
+            - Path traversal protection
+            - File size validation
+            - File type validation
         """
         if base_path is None:
             # Get the application's data directory
@@ -31,6 +48,8 @@ class DatasheetManager:
         # Ensure the datasheets directory exists
         self.base_path.mkdir(parents=True, exist_ok=True)
         self._setup_logging()
+        
+        logger.info(f"DatasheetManager initialized at: {self.base_path}")
     
     def _setup_logging(self):
         """Set up logging for datasheet operations."""
@@ -45,7 +64,7 @@ class DatasheetManager:
     
     def get_datasheet_path(self, component_id: str, filename: str) -> Path:
         """
-        Get the full path for a datasheet.
+        Get the full path for a datasheet with security validation.
         
         Args:
             component_id: The component ID (used for organizing files)
@@ -53,15 +72,36 @@ class DatasheetManager:
         
         Returns:
             Path object for the datasheet location
+            
+        Raises:
+            ValueError: If component_id or filename is invalid
         """
+        # SECURITY: Validate component ID to prevent path traversal
+        if not validate_component_id(component_id):
+            raise ValueError(f"Invalid component ID: {component_id}")
+        
+        # SECURITY: Sanitize filename
+        filename = sanitize_string(filename, max_length=255)
+        
+        # SECURITY: Validate filename doesn't contain path separators
+        if '/' in filename or '\\' in filename or '..' in filename:
+            raise ValueError(f"Invalid filename: {filename}")
+        
         # Create component-specific directory
         component_dir = self.base_path / component_id
         component_dir.mkdir(exist_ok=True)
-        return component_dir / filename
+        
+        dest_path = component_dir / filename
+        
+        # SECURITY: Verify path is within base directory
+        if not validate_file_path(dest_path, self.base_path):
+            raise ValueError(f"Path traversal attempt detected: {dest_path}")
+        
+        return dest_path
     
     def store_datasheet(self, component_id: str, file_path: Union[str, Path]) -> Optional[Path]:
         """
-        Store a datasheet file in the managed location.
+        Store a datasheet file in the managed location with comprehensive security validation.
         
         Args:
             component_id: The component ID for organization
@@ -74,25 +114,39 @@ class DatasheetManager:
             ValueError: If the file is not a PDF or component_id is invalid
             FileNotFoundError: If the source file doesn't exist
             OSError: If there's an error copying the file
+            
+        Security:
+            - Component ID validation (prevents path traversal)
+            - File size validation (prevents DOS)
+            - File type validation (only PDFs allowed)
+            - Path traversal protection
         """
         try:
             file_path = Path(file_path)
             
-            # Validate component_id
-            if not component_id or not isinstance(component_id, str):
+            # SECURITY: Validate component_id to prevent path traversal
+            if not validate_component_id(component_id):
                 raise ValueError(f"Invalid component ID: {component_id}")
             
-            # Check file exists
+            # SECURITY: Check file exists
             if not file_path.exists():
                 raise FileNotFoundError(f"Source file does not exist: {file_path}")
             
-            # Validate file type
-            if file_path.suffix.lower() != '.pdf':
+            # SECURITY: Validate file size (prevent DOS with huge files)
+            if not validate_file_size(file_path, max_size_mb=MAX_FILE_SIZE_MB):
+                raise ValueError(f"File exceeds maximum size of {MAX_FILE_SIZE_MB}MB: {file_path}")
+            
+            # SECURITY: Validate file type (only PDF)
+            if not validate_file_extension(file_path, allowed_extensions={'.pdf'}):
                 raise ValueError(f"Only PDF files are supported: {file_path}")
             
             # Get destination path and ensure parent directory exists
             dest_path = self.get_datasheet_path(component_id, file_path.name)
             dest_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            # SECURITY: Final path validation
+            if not validate_file_path(dest_path, self.base_path):
+                raise ValueError(f"Path traversal attempt detected: {dest_path}")
             
             # Copy file with error handling
             try:

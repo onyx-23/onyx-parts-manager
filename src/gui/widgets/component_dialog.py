@@ -30,7 +30,7 @@ class ComponentDialog(QDialog):
         self.unit_input = QComboBox()
         
         # Set up different unit options based on component type
-        self.resistor_units = ["Ω", "kΩ", "MΩ", "GΩ"]
+        self.resistor_units = ["mΩ", "Ω", "kΩ", "MΩ", "GΩ"]
         self.capacitor_units = ["pF", "nF", "µF", "mF", "F"]
         self.inductor_units = ["nH", "µH", "mH", "H"]
         self.frequency_units = ["Hz", "kHz", "MHz", "GHz"]

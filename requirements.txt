@@ -1,7 +1,10 @@
 PyQt6
-requests
-beautifulsoup4
-python-dotenv
+requests>=2.31.0  # Security: Use latest version with vulnerability fixes
+beautifulsoup4>=4.12.0  # Security: Use latest version
+python-dotenv>=1.0.0
 pandas
 openpyxl  # for Excel file support
 PyMuPDF  # for PDF preview
+urllib3>=2.0.0  # Security: Modern version with better SSL support
+certifi>=2023.7.22  # Security: Up-to-date SSL certificates
+cryptography>=41.0.0  # Security: For future encryption needs
